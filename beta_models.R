@@ -27,7 +27,6 @@ my_prior = get_prior(valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + ani
 
 b_brms_m = brm(valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject),
                data = ratings, 
-               # family = beta_family(link = "logit"), 
                zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
                iter = 2000,
