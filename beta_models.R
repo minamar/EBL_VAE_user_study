@@ -23,9 +23,14 @@ rm(list = ls(all.names = TRUE))
 
 library(brms)
 library(ggplot2); theme_set(theme_bw())
-my_prior = get_prior(valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject), data = ratings, family = beta_family(link = "logit"))
 
-b_brms_m = brm(valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject),
+form1 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form2 = valence ~ v_cat + a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form3 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+
+my_prior = get_prior(form1, data = ratings, family = beta_family(link = "logit"))
+
+b_brms_m1 = brm(form1,
                data = ratings, 
                zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
@@ -35,10 +40,12 @@ b_brms_m = brm(valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_expe
                control = list(max_treedepth = 15),
                autocor = NULL)
 
-summary(b_brms_m)
-plot(b_brms_m)
-pp = pp_check(b_brms_m)
-pp + theme_bw(b_brms_m)
+mod = b_brms_m1
 
-marginal_effects(b_brms_m)
+# Diagnostics
+summary(mod)
+plot(mod)
+pp = pp_check(mod)
+pp + theme_bw(mod)
+marginal_effects(mod)
  
