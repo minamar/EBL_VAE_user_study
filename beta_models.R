@@ -29,11 +29,19 @@ form1 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience 
 form2 = valence ~ v_cat + a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 form3 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 
-my_prior = get_prior(form1, data = ratings, family = beta_family(link = "logit"))
+my_prior = get_prior(form1, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+
+zoib_model <- bf(
+  form0,
+  phi ~ v_cat,
+  zoi ~ v_cat,
+  coi ~ v_cat, 
+  family = zero_one_inflated_beta()
+)
 
 b_brms_m1 = brm(form1,
                data = ratings, 
-               zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
+               family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
                iter = 2000,
                chains = 4,
@@ -43,6 +51,14 @@ b_brms_m1 = brm(form1,
 
 mod = b_brms_m1
 
+mod <- brm(
+  formula = zoib_model,
+  data = ratings,
+  iter = 2000,
+  chains = 4,
+  cores = 4,
+  control = list(max_treedepth = 15),
+)
 # Diagnostics
 summary(mod)
 plot(mod)
