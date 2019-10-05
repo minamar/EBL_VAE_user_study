@@ -24,6 +24,7 @@ rm(list = ls(all.names = TRUE))
 library(brms)
 library(ggplot2); theme_set(theme_bw())
 
+form0 = valence ~ v_cat 
 form1 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 form2 = valence ~ v_cat + a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 form3 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
