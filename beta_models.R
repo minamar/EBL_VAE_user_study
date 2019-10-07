@@ -22,6 +22,8 @@ testZeroInflation(simulationOutput)
 rm(list = ls(all.names = TRUE))
 
 library(brms)
+library(sjPlot)
+library(sjstats)
 library(ggplot2); theme_set(theme_bw())
 
 form0 = valence ~ v_cat 
@@ -68,4 +70,34 @@ fit = fitted(mod,
              )               # convert to %
 colnames(fit) = c('fit', 'se', 'lwr', 'upr')
 df_plot = cbind(newdata, fit)
+
+antilogit = function(x) 1 / (1 + exp(-x))
+fit2 = data.frame(v_catNeg =      antilogit(coda[, 1]),
+                    v_catNeu =    antilogit(coda[, 1] + coda[, 2]),
+                    v_catPos =   antilogit(coda[, 1] + coda[, 3]),
+                    a_catr4 = antilogit(coda[, 1] + coda[, 4]),
+                    a_catr5 =    antilogit(coda[, 1] + coda[, 5]),
+                    trial = antilogit(coda[, 1] + coda[, 6]),
+                    age =   antilogit(coda[, 1] + coda[, 7]), 
+                    anim_experience =    antilogit(coda[, 1] + coda[, 8]),
+                    sexM =   antilogit(coda[, 1] + coda[, 8]),
+                    v_catNeu_a_catr4 = antilogit(coda[, 1] + coda[, 10]),
+                  v_catPos_a_catr4 =    antilogit(coda[, 1] + coda[, 11]),
+                  v_catNeu_a_catr5 = antilogit(coda[, 1] + coda[, 12]),
+                  v_catPos_a_catr5 =   antilogit(coda[, 1] + coda[, 13])
+)
  
+neu_vs_neg = fit2$v_catNeu - fit2$v_catNeg
+hist(neg_vs_neu)
+quantile(neg_vs_neu, probs = c(.5, .025, .975)) 
+mean(neg_vs_neu > 0)
+
+pos_vs_neu = fit2$v_catPos - fit2$v_catNeu
+hist(pos_vs_neu)
+quantile(pos_vs_neu, probs = c(.5, .025, .975)) 
+mean(pos_vs_neu > 0)
+
+pos_vs_neg = fit2$v_catPos - fit2$v_catNeg
+hist(pos_vs_neg)
+quantile(pos_vs_neg, probs = c(.5, .025, .975)) 
+mean(pos_vs_neg > 0)
