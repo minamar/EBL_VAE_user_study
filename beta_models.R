@@ -25,9 +25,9 @@ library(brms)
 library(ggplot2); theme_set(theme_bw())
 
 form0 = valence ~ v_cat 
-form1 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form1 = valence ~  v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 form2 = valence ~ v_cat + a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
-form3 = valence ~ v_cat + a_cat + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form3 = valence ~ v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
 
 my_prior = get_prior(form1, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
@@ -51,18 +51,21 @@ b_brms_m1 = brm(form1,
 
 mod = b_brms_m1
 
-mod <- brm(
-  formula = zoib_model,
-  data = ratings,
-  iter = 2000,
-  chains = 4,
-  cores = 4,
-  control = list(max_treedepth = 15),
-)
 # Diagnostics
 summary(mod)
 plot(mod)
 pp = pp_check(mod)
 pp + theme_bw(mod)
 marginal_effects(mod)
+
+# Custom plot of model predictions
+newdata = data.frame(valence_category = levels(ratings$v_cat))
+fit = fitted(mod,
+             newdata = newdata,
+             re_formula = NA,    # ignore random effects
+             summary = TRUE, # mean and 95% CI
+             scale = "response"
+             )               # convert to %
+colnames(fit) = c('fit', 'se', 'lwr', 'upr')
+df_plot = cbind(newdata, fit)
  
