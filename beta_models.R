@@ -27,11 +27,15 @@ library(sjstats)
 library(ggplot2); theme_set(theme_bw())
 
 form0 = valence ~ v_cat 
-form1 = valence ~  v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
-form2 = valence ~ v_cat + a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
-form3 = valence ~ v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form1 = valence ~  v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 |subject)
+form2 = valence ~  (1|subject)
+form3 = valence ~  (1|idAnim)
+form4 = valence ~ v_cat * a_cat
+  
+#form_ = valence ~ 1 + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 + v_cat|subject) # no diff
 
-my_prior = get_prior(form1, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+
+my_prior = get_prior(form2, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
 zoib_model <- bf(
   form0,
@@ -49,7 +53,9 @@ b_brms_m1 = brm(form1,
                chains = 4,
                cores = 4,
                control = list(max_treedepth = 15),
-               autocor = NULL)
+               autocor = NULL,
+               save_all_pars = TRUE,
+               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models')
 
 mod = b_brms_m1
 
@@ -71,7 +77,7 @@ fit = fitted(mod,
 colnames(fit) = c('fit', 'se', 'lwr', 'upr')
 df_plot = cbind(newdata, fit)
 
-antilogit = function(x) 1 / (1 + exp(-x))
+antilogit = function(x) 1 / (1 + exp(-x))   # same as plogis()
 fit2 = data.frame(v_catNeg =      antilogit(coda[, 1]),
                     v_catNeu =    antilogit(coda[, 1] + coda[, 2]),
                     v_catPos =   antilogit(coda[, 1] + coda[, 3]),
@@ -101,3 +107,8 @@ pos_vs_neg = fit2$v_catPos - fit2$v_catNeg
 hist(pos_vs_neg)
 quantile(pos_vs_neg, probs = c(.5, .025, .975)) 
 mean(pos_vs_neg > 0)
+
+female_vs_male = fit2$v_catNeg - fit2$sexM
+hist(female_vs_male)
+quantile(female_vs_male, probs = c(.5, .025, .975)) 
+mean(female_vs_male > 0)
