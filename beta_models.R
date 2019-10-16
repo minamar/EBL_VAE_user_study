@@ -66,6 +66,26 @@ pp = pp_check(mod)
 pp + theme_bw(mod)
 marginal_effects(mod)
 
+# Model comparisons
+b_brms_m1 <- add_criterion(b_brms_m1, "waic")
+b_brms_m0 <- add_criterion(b_brms_m0, "waic")
+loo_compare(b_brms_m1, b_brms_m0, criterion = "waic")
+
+##
+b_brms_m0_loo = loo(b_brms_m0, save_psis = TRUE)
+b_brms_m1_loo = loo(b_brms_m1, nsamples = 4000)
+b_brms_m2_loo = loo(b_brms_m2, save_psis = TRUE)
+b_brms_m3_loo = loo(b_brms_m3, save_psis = TRUE)
+b_brms_m4_loo = loo(b_brms_m4, save_psis = TRUE)
+
+# If there is warning pareto_k > 0.7 
+b_brms_m1_reloo = loo(b_brms_m1, reloo = T)
+loo_compare(b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo)
+
+yrep <- posterior_predict(b_brms_m1_loo)
+loo::ppc_loo_pit_overlay(ratings$valence, yrep, lw = weights(b_brms_m1_loo$psis_object))
+
+
 # Custom plot of model predictions
 newdata = data.frame(valence_category = levels(ratings$v_cat))
 fit = fitted(mod,
@@ -112,3 +132,13 @@ female_vs_male = fit2$v_catNeg - fit2$sexM
 hist(female_vs_male)
 quantile(female_vs_male, probs = c(.5, .025, .975)) 
 mean(female_vs_male > 0)
+
+# Visualization of posterion per subject or item
+posterior <- as.array(b_brms_m1)
+dim(posterior)
+dimnames(posterior)
+
+mcmc_intervals(posterior, pars = vars(starts_with("r_subject")))
+mcmc_intervals(posterior, pars = vars(starts_with("r_idAnim")))
+
+
