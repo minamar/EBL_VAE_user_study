@@ -26,7 +26,7 @@ library(sjPlot)
 library(sjstats)
 library(ggplot2); theme_set(theme_bw())
 
-form0 = valence ~ v_cat 
+form0 = valence ~ 1 
 form1 = valence ~  v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 |subject)
 form2 = valence ~  (1|subject)
 form3 = valence ~  (1|idAnim)
@@ -35,7 +35,7 @@ form4 = valence ~ v_cat * a_cat
 #form_ = valence ~ 1 + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 + v_cat|subject) # no diff
 
 
-my_prior = get_prior(form2, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+my_prior = get_prior(form0, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
 zoib_model <- bf(
   form0,
@@ -45,7 +45,7 @@ zoib_model <- bf(
   family = zero_one_inflated_beta()
 )
 
-b_brms_m1 = brm(form1,
+b_brms_m0 = brm(form0,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
@@ -55,7 +55,7 @@ b_brms_m1 = brm(form1,
                control = list(max_treedepth = 15),
                autocor = NULL,
                save_all_pars = TRUE,
-               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models')
+               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m1')
 
 mod = b_brms_m1
 
