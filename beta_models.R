@@ -41,28 +41,29 @@ form8 = valence ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1
 #form_ = valence ~ 1 + v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 + v_cat|subject) # no diff
 form9 = arousal ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1 |subject)
 form54 = valence ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1 |subject) # probit link
+form10 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1|p|idAnim) + (1|q|subject)
 
-my_prior = get_prior(form54, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+my_prior = get_prior(form10, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
-b_brms_m54 = brm(form54,
+b_brms_m10 = brm(form10,
                data = ratings, 
-               family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
+               family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
                iter = 2000,
                chains = 4,
                cores = 4,
-               control = list(max_treedepth = 15),
+               control = list(max_treedepth = 15, adapt_delta = 0.9),
                autocor = NULL,
                save_all_pars = TRUE,
-               sample_prior = TRUE,
-               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m54')
+               #sample_prior = "only",
+               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m10')
 
-mod = b_brms_m54
+mod = b_brms_m10
 
 # Diagnostics
 summary(mod)
 plot(mod)
-pp = pp_check(mod)
+pp = pp_check(mod, resp = "arousal")
 pp + theme_bw(mod)
 marginal_effects(mod)
 
@@ -73,11 +74,12 @@ b_brms_m6 <- add_criterion(b_brms_m6, "waic")
 loo_compare(b_brms_m6, b_brms_m1, criterion = "waic")
 
 ## Model comparison with loo
-b_brms_m0_loo = loo(b_brms_m0, save_psis = TRUE)
+b_brms_m10_loo = loo(b_brms_m10, save_psis = TRUE)
 
 # If there is warning pareto_k > 0.7 
-b_brms_m52_reloo = loo(b_brms_m52, reloo = T)
-loo_compare(b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo)
+b_brms_m10_reloo = loo(b_brms_m10, reloo = T)
+loo_compare(b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo,  b_brms_m10_reloo)
+
 
 # 
 fitted_values <-fitted(mod)
@@ -169,4 +171,13 @@ dimnames(posterior)
 mcmc_intervals(posterior, pars = vars(starts_with("r_subject")))
 mcmc_intervals(posterior, pars = vars(starts_with("r_idAnim")))
 
+# Prior plots
+conditions <- data.frame(v_cat = unique(ratings$v_cat))
+rownames(conditions) <- unique(ratings$v_cat)
+me_loss_prior1 <- marginal_effects(
+  b_brms_m5, conditions = conditions, 
+  re_formula = NULL, method = "predict"
+)
+p0 <- plot(me_loss_prior1, ncol = 3, points = TRUE, plot = FALSE)
+p0$dev + ggtitle("Prior predictive distributions")
 
