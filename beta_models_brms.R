@@ -1,23 +1,3 @@
-## Beta regression
-library(glmmTMB)
-library(DHARMa)
-library(car)
-library(emmeans)
-library(effects)
-library(multcomp)
-library(MuMIn)
-library(DHARMa)
-library(dotwhisker)
-library(ggplot2); theme_set(theme_bw())
-
-# glmmTMB
-beta_model_glmmTMB = glmmTMB(valence   ~ v_cat + a_cat + v_cat*a_cat + trial + age + anim_experience + sex + (1 | idAnim) + (1 | subject), ratings_non_inflated, beta_family(link = "logit"))
-simulationOutput <- simulateResiduals(fittedModel = beta_model_glmmTMB, n = 250)
-plot(simulationOutput)
-testDispersion(simulationOutput)
-testZeroInflation(simulationOutput)
-# wEB: https://cran.r-project.org/web/packages/glmmTMB/vignettes/model_evaluation.html
-# https://cran.r-project.org/web/packages/DHARMa/vignettes/DHARMa.html#installing-loading-and-citing-the-package
 
 rm(list = ls(all.names = TRUE))
 
@@ -42,23 +22,29 @@ form8 = valence ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1
 form9 = arousal ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1 |subject)
 form54 = valence ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1 |subject) # probit link
 form10 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1|p|idAnim) + (1|q|subject)
+form11 = mvbind(valence, arousal) ~  a_cat * v_cat + age + anim_experience + sex + (1|p|idAnim) + (1|q|subject)
+form12 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex 
+form13 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1|subject)
+form14 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1+v_cat+a_cat|idAnim) + (1+v_cat+a_cat|subject)
+form15 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1+v_cat+a_cat|idAnim) + (1|subject)
 
-my_prior = get_prior(form10, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
-
-b_brms_m10 = brm(form10,
+def_prior = get_prior(form10, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+my_prior = 
+  
+b_brms_m15 = brm(form15,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
-               iter = 2000,
+               iter = 3000,
                chains = 4,
                cores = 4,
-               control = list(max_treedepth = 15, adapt_delta = 0.9),
+               control = list(max_treedepth = 15, adapt_delta = 0.999),
                autocor = NULL,
                save_all_pars = TRUE,
                #sample_prior = "only",
-               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m10')
+               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m15')
 
-mod = b_brms_m10
+mod = b_brms_m15
 
 # Diagnostics
 summary(mod)
@@ -67,6 +53,7 @@ pp = pp_check(mod, resp = "arousal")
 pp + theme_bw(mod)
 marginal_effects(mod)
 
+
 # Model comparisons
 b_brms_m1 <- add_criterion(b_brms_m1, "waic")
 b_brms_m5 <- add_criterion(b_brms_m5, "waic")
@@ -74,11 +61,11 @@ b_brms_m6 <- add_criterion(b_brms_m6, "waic")
 loo_compare(b_brms_m6, b_brms_m1, criterion = "waic")
 
 ## Model comparison with loo
-b_brms_m10_loo = loo(b_brms_m10, save_psis = TRUE)
+b_brms_m15_loo = loo(b_brms_m15, save_psis = TRUE)
 
 # If there is warning pareto_k > 0.7 
-b_brms_m10_reloo = loo(b_brms_m10, reloo = T)
-loo_compare(b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo,  b_brms_m10_reloo)
+b_brms_m15_reloo = loo(b_brms_m15, reloo = T)
+loo_compare(b_brms_m15_reloo, b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo,  b_brms_m10_reloo, b_brms_m12_loo, b_brms_m13_reloo)
 
 
 # 
@@ -164,7 +151,8 @@ quantile(female_vs_male, probs = c(.5, .025, .975))
 mean(female_vs_male > 0)
 
 # Visualization of posterion per subject or item
-posterior <- as.array(b_brms_m5)
+library(bayesplot)
+posterior <- as.array(b_brms_m10)
 dim(posterior)
 dimnames(posterior)
 
