@@ -29,7 +29,7 @@ descdist(ratings_old$arousal)
 library(gamlss)
 library(gamlss.dist)
 library(gamlss.add)
-fit <- fitDist(ratings_old$arousal)
+fit <- fitDist(ratings_tiny_trans$arousal)
 summary(fit)
 
 
