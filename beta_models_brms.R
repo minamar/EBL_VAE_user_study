@@ -27,14 +27,45 @@ form12 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex
 form13 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1|idAnim) + (1|subject)
 form14 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1+v_cat+a_cat|idAnim) + (1+v_cat+a_cat|subject)
 form15 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex + (1+v_cat+a_cat|idAnim) + (1|subject)
+form16 = mvbind(valence, arousal) ~  v_cat * a_cat + age + sex +  (1|p|idAnim) + (1|q|subject)
+form17 = mvbind(valence, arousal) ~  v_cat * a_cat + sex +  (1|idAnim) + (1|subject)
+form18 = bf(
+  valence ~  v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
+  phi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
+  zoi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
+  coi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
+  family = zero_one_inflated_beta()
+)
+def_prior = get_prior(form18, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+my_prior = c(
+  #prior(lkj(1), class = cor),
+             prior(beta(1,1), class = coi, resp = "arousal"),
+             prior(normal(0.6,0.15), class = Intercept, resp = "arousal"),
+             prior(gamma(0.01, 0.01), class = phi, resp = "arousal"),
+             prior(student_t(3, 0, 10), class = sd, resp = "arousal"),
+             prior(beta(1, 1), class = zoi, resp = "arousal"),
+             prior(beta(1,1), class = coi, resp = "valence"),
+             prior(normal(0.5,0.15), class = Intercept, resp = "valence"),
+             prior(gamma(0.01, 0.01), class = phi, resp = "valence"),
+             prior(student_t(3, 0, 10), class = sd, resp = "valence"),
+             prior(beta(1, 1), class = zoi, resp = "valence")
+             )
 
-def_prior = get_prior(form10, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
-my_prior = 
+my_prior_18 = c(
+  prior(normal(0.5,0.15), class = Intercept),                                               
+  prior(student_t(3, 0, 10), class = sd),
+  prior(logistic(0, 1), class = Intercept, dpar = coi),            
+  prior(student_t(3, 0, 10), class = sd, dpar = coi),            
+  prior(student_t(3, 0, 10), class = Intercept, dpar = phi),            
+  prior(student_t(3, 0, 10), class = sd, dpar =phi),            
+  prior(logistic(0, 1), class = Intercept, dpar =zoi),           
+  prior(student_t(3, 0, 10), class = sd, dpar = zoi)           
+)
   
-b_brms_m15 = brm(form15,
+b_brms_m18 = brm(form18,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
-               prior = my_prior,
+               prior = my_prior_18,
                iter = 3000,
                chains = 4,
                cores = 4,
@@ -42,9 +73,9 @@ b_brms_m15 = brm(form15,
                autocor = NULL,
                save_all_pars = TRUE,
                #sample_prior = "only",
-               save_model = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m15')
+               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m18')
 
-mod = b_brms_m15
+mod = b_brms_m17
 
 # Diagnostics
 summary(mod)
@@ -61,11 +92,11 @@ b_brms_m6 <- add_criterion(b_brms_m6, "waic")
 loo_compare(b_brms_m6, b_brms_m1, criterion = "waic")
 
 ## Model comparison with loo
-b_brms_m15_loo = loo(b_brms_m15, save_psis = TRUE)
+b_brms_m17_loo = loo(b_brms_m17, save_psis = TRUE)
 
 # If there is warning pareto_k > 0.7 
-b_brms_m15_reloo = loo(b_brms_m15, reloo = T)
-loo_compare(b_brms_m15_reloo, b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo,  b_brms_m10_reloo, b_brms_m12_loo, b_brms_m13_reloo)
+b_brms_m17_reloo = loo(b_brms_m17, reloo = T)
+loo_compare( b_brms_m17_reloo, b_brms_m16_reloo, b_brms_m10p_reloo,b_brms_m10_reloo, b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo)
 
 
 # 
