@@ -14,11 +14,15 @@ fit_v = fitdistr(ratings_old$valence, "normal")
 fit_v
 hist(ratings_old$valence, pch=20, breaks=25, prob=TRUE, main="")
 curve(dnorm(x, fit_v$estimate[1], fit_v$estimate[2]), col="green", lwd=2, add=T)
+curve(dnorm(x, 0.48, 0.14), col="red", lwd=2, add=T)
+curve(dbeta(x, 2.1746469, 2.1900334), col="blue", lwd=2, add=T)
 
 fit_a = fitdistr(ratings_old$arousal, "normal") 
 fit_a
 hist(ratings_old$arousal, pch=20, breaks=25, prob=TRUE, main="")
 curve(dnorm(x, fit_a$estimate[1], fit_a$estimate[2]), col="green", lwd=2, add=T)
+curve(dnorm(x, 0.6, 0.18), col="red", lwd=2, add=T)
+curve(dbeta(x, 2.27418572, 1.63491286), col="blue", lwd=2, add=T)
 
 # Summary stats
 par(mfrow=c(1,2))
