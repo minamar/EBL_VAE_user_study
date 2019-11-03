@@ -30,22 +30,25 @@ form15 = mvbind(valence, arousal) ~  v_cat * a_cat + age + anim_experience + sex
 form16 = mvbind(valence, arousal) ~  v_cat * a_cat + age + sex +  (1|p|idAnim) + (1|q|subject)
 form17 = mvbind(valence, arousal) ~  v_cat * a_cat + sex +  (1|idAnim) + (1|subject)
 form18 = bf(
-  valence ~  v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
-  phi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
-  zoi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
-  coi ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
-  family = zero_one_inflated_beta()
+  mvbind(valence, arousal) ~  v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject),
+  zoi ~ v_cat + a_cat
 )
-def_prior = get_prior(form18, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+form19 = mvbind(valence, arousal) ~  v_cat * a_cat + sex + age + (1|idAnim) + (1|subject) # with informative priors
+
+def_prior = get_prior(form19, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 my_prior = c(
   #prior(lkj(1), class = cor),
              prior(beta(1,1), class = coi, resp = "arousal"),
-             prior(normal(0.6,0.15), class = Intercept, resp = "arousal"),
+             prior(normal(0.1767,0.10), class = Intercept, resp = "arousal"),
+             prior(normal(0.5398,0.10), class = b, coef=a_catr4, resp = "arousal"),
+             prior(normal(0.8373,0.10), class = b, coef=a_catr5, resp = "arousal"),
              prior(gamma(0.01, 0.01), class = phi, resp = "arousal"),
              prior(student_t(3, 0, 10), class = sd, resp = "arousal"),
              prior(beta(1, 1), class = zoi, resp = "arousal"),
              prior(beta(1,1), class = coi, resp = "valence"),
-             prior(normal(0.5,0.15), class = Intercept, resp = "valence"),
+             prior(normal(0.1746,0.10), class = Intercept, resp = "valence"),
+             prior(normal(0.5058,0.10), class = b, coef=v_catNeu, resp = "valence"),
+             prior(normal(0.8154,0.10), class = b, coef=v_catPos, resp = "valence"),
              prior(gamma(0.01, 0.01), class = phi, resp = "valence"),
              prior(student_t(3, 0, 10), class = sd, resp = "valence"),
              prior(beta(1, 1), class = zoi, resp = "valence")
@@ -56,26 +59,26 @@ my_prior_18 = c(
   prior(student_t(3, 0, 10), class = sd),
   prior(logistic(0, 1), class = Intercept, dpar = coi),            
   prior(student_t(3, 0, 10), class = sd, dpar = coi),            
-  prior(student_t(3, 0, 10), class = Intercept, dpar = phi),            
-  prior(student_t(3, 0, 10), class = sd, dpar =phi),            
+#  prior(student_t(3, 0, 10), class = Intercept, dpar = phi),            
+#  prior(student_t(3, 0, 10), class = sd, dpar =phi),            
   prior(logistic(0, 1), class = Intercept, dpar =zoi),           
   prior(student_t(3, 0, 10), class = sd, dpar = zoi)           
 )
   
-b_brms_m18 = brm(form18,
+b_brms_m19 = brm(form19,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
-               prior = my_prior_18,
-               iter = 3000,
+               prior = my_prior,
+               iter = 4000,
                chains = 4,
                cores = 4,
-               control = list(max_treedepth = 15, adapt_delta = 0.999),
+               control = list(max_treedepth = 15, adapt_delta = 0.9999),
                autocor = NULL,
                save_all_pars = TRUE,
                #sample_prior = "only",
-               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m18')
+               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m19')
 
-mod = b_brms_m17
+mod = b_brms_m19
 
 # Diagnostics
 summary(mod)
@@ -83,7 +86,6 @@ plot(mod)
 pp = pp_check(mod, resp = "arousal")
 pp + theme_bw(mod)
 marginal_effects(mod)
-
 
 # Model comparisons
 b_brms_m1 <- add_criterion(b_brms_m1, "waic")
