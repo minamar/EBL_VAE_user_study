@@ -37,3 +37,22 @@ fit <- fitDist(ratings_tiny_trans$arousal)
 summary(fit)
 
 
+# prior 19 
+my_prior = c(
+  #prior(lkj(1), class = cor),
+  prior(beta(1,1), class = coi, resp = "arousal"),
+  prior(normal(0.1767,0.10), class = Intercept, resp = "arousal"),
+  prior(normal(0.5398,0.10), class = b, coef=a_catr4, resp = "arousal"),
+  prior(normal(0.8373,0.10), class = b, coef=a_catr5, resp = "arousal"),
+  prior(gamma(0.01, 0.01), class = phi, resp = "arousal"),
+  prior(student_t(3, 0, 10), class = sd, resp = "arousal"),
+  prior(beta(1, 1), class = zoi, resp = "arousal"),
+  prior(beta(1,1), class = coi, resp = "valence"),
+  prior(normal(0.1746,0.10), class = Intercept, resp = "valence"),
+  prior(normal(0.5058,0.10), class = b, coef=v_catNeu, resp = "valence"),
+  prior(normal(0.8154,0.10), class = b, coef=v_catPos, resp = "valence"),
+  prior(gamma(0.01, 0.01), class = phi, resp = "valence"),
+  prior(student_t(3, 0, 10), class = sd, resp = "valence"),
+  prior(beta(1, 1), class = zoi, resp = "valence")
+)
+
