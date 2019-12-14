@@ -31,3 +31,8 @@ shapiro.test(ratings$valence)
 shapiro.test(ratings$arousal)
 shapiro.test(ratings$dominance)
 shapiro.test(ratings$reaction_time)
+
+# Categorical scatter plots
+ggplot(ratings, aes(x = v_cat, y = valence)) + geom_point(position = position_dodge(width = 0.4))
+
+ggplot(ratings, aes(x = a_cat, y = arousal)) + geom_point(position = position_dodge(width = 0.4))
