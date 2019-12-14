@@ -1,3 +1,16 @@
+# Final formulas: multivariate, interaction 
+form1 = mvbind(valence, arousal) ~  v_cat * a_cat + sex + age + (1|idAnim) + (1|subject)
+
+form2 = mvbind(valence, arousal) ~  v_cat * a_cat + age + sex
+
+form3 = mvbind(valence, arousal) ~  v_cat + a_cat + sex + age + (1|idAnim) + (1|subject)
+
+form4 = mvbind(valence, arousal) ~  v_cat * a_cat + age + (1|idAnim) + (1|subject)
+
+form5 = mvbind(valence, arousal) ~  v_cat * a_cat + sex + (1|idAnim) + (1|subject)
+
+
+
 # OLder models
 form1 = valence ~  v_cat * a_cat + trial + age + anim_experience + sex + (1|idAnim) + (1 |subject)
 form2 = valence ~  (1|subject)
