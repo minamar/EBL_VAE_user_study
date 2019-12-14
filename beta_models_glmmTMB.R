@@ -11,7 +11,7 @@ library(dotwhisker)
 library(ggplot2); theme_set(theme_bw())
 
 # glmmTMB
-beta_model_glmmTMB = glmmTMB(valence ~  v_cat * a_cat + age + anim_experience + sex, ratings_non_inflated, beta_family(link = "logit"))
+beta_model_glmmTMB = glmmTMB(arousal ~ v_cat * a_cat + age + sex +  (1|idAnim) + (1|subject), ratings_tiny_trans, beta_family(link = "logit"))
 simulationOutput <- simulateResiduals(fittedModel = beta_model_glmmTMB, n = 250)
 plot(simulationOutput)
 testDispersion(simulationOutput)
