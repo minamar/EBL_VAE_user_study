@@ -1,6 +1,48 @@
 # Priors
 library(ggplot2)
+library(dplyr)
+library(rstatix)
+library(ggpubr)
+library(cowplot)
 
+# 1. Summary stats and boxplots of data from STUDY A to be used as priors for STUDY B
+#***************************************************************************************
+# Add v_cat and a_cat columns
+ratings_old %>%
+  select(subject, valence, arousal)  %>% 
+  mutate(v_cat = case_when(valence <= 0.33 ~ "Negative",
+                           (valence > 0.33 & valence <= 0.66) ~ "Neutral",
+                           valence > 0.66 ~ "Positive"),
+         a_cat = case_when(arousal <= 0.33 ~ "Low",
+                           (arousal > 0.33 & arousal <= 0.66) ~ "Medium",
+                           arousal > 0.66 ~ "High"))  %>%
+  {. ->> ratings_old_cat}
+
+ratings_old_cat  %>%
+  group_by(v_cat) %>%
+  get_summary_stats(valence, type = "mean_sd")
+ratings_old_cat  %>%
+  group_by(a_cat) %>%
+  get_summary_stats(arousal, type = "mean_sd")
+
+# Vis
+v_bxp <- ggboxplot(ratings_old_cat, x = "v_cat", y = "valence", add = "point", order=c("Negative", "Neutral", "Positive"))
+v_plot <- v_hist + theme_gray() + scale_x_discrete(labels = c('negative','neutral','positive')) + 
+  theme(axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10))
+
+a_bxp <- ggboxplot(ratings_old_cat, x = "a_cat", y = "arousal", add = "point", order=c("Low", "Medium", "High"))
+a_plot <- a_bxp + theme_gray() + scale_x_discrete(labels = c('low','medium','high')) + 
+  theme(axis.title.x = element_text(size = 10), axis.title.y = element_text(size = 10))
+
+plot_grid(v_plot, a_plot, labels = "AUTO", ncol = 2)
+ggsave("images/va_bxp_prior.pdf", units="mm", width=150, height=80, dpi=300)
+
+
+# 2. Summary stats and boxplots of data from STUDY A to be used as priors for STUDY B
+#***************************************************************************************
+
+#############################
+# Older priors 
 # Histograms of responses
 par(mfrow=c(1,2))
 hist(ratings_old$valence, main=NULL, xlab="Pleasure")
@@ -56,3 +98,18 @@ my_prior = c(
   prior(beta(1, 1), class = zoi, resp = "valence")
 )
 
+my_prior_18 = c(
+  prior(normal(0.5,0.15), class = Intercept),                                               
+  prior(student_t(3, 0, 10), class = sd),
+  prior(logistic(0, 1), class = Intercept, dpar = coi),            
+  prior(student_t(3, 0, 10), class = sd, dpar = coi),            
+  #  prior(student_t(3, 0, 10), class = Intercept, dpar = phi),            
+  #  prior(student_t(3, 0, 10), class = sd, dpar =phi),            
+  prior(logistic(0, 1), class = Intercept, dpar =zoi),           
+  prior(student_t(3, 0, 10), class = sd, dpar = zoi)           
+)
+
+set.seed(seed = 1923840479)
+b_neg <- rnorm(1, 0.1746,0.10)
+b_neu <- rnorm(1, 0.5058,0.10)
+b_pos <- rnorm(1, 0.8154,0.10)
