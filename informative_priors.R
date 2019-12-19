@@ -20,10 +20,10 @@ ratings_old %>%
 
 ratings_old_cat  %>%
   group_by(v_cat) %>%
-  get_summary_stats(valence, type = "mean_sd")
+  get_summary_stats(valence, type = "median_iqr")
 ratings_old_cat  %>%
   group_by(a_cat) %>%
-  get_summary_stats(arousal, type = "mean_sd")
+  get_summary_stats(arousal, type = "median_iqr")
 
 # Vis
 v_bxp <- ggboxplot(ratings_old_cat, x = "v_cat", y = "valence", add = "point", order=c("Negative", "Neutral", "Positive"))
@@ -38,8 +38,16 @@ plot_grid(v_plot, a_plot, labels = "AUTO", ncol = 2)
 ggsave("images/va_bxp_prior.pdf", units="mm", width=150, height=80, dpi=300)
 
 
-# 2. Summary stats and boxplots of data from STUDY A to be used as priors for STUDY B
+# 2. Gaussian Mixture Models with 3 groups on valence ratings of STUDY A: 
 #***************************************************************************************
+library(mclust, quietly=TRUE)
+fit = Mclust(ratings_old$valence, G=3, model="V")
+summary(fit)
+plot(fit, what="density", main="", xlab="Valence")
+fit$parameters
+curve(dnorm(x, 0.1713, 0.4), col="green", lwd=2, add=T)
+curve(dnorm(x, 0.5748577, 0.25), col="blue", lwd=2, add=T)
+curve(dnorm(x, 0.9582016, 0.55), col="red", lwd=2, add=T)
 
 #############################
 # Older priors 
