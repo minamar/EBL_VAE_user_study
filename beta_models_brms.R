@@ -10,44 +10,24 @@ library(dplyr)
 library(tibble)
 library(knitr)
 library(bayesplot)
-library(tidyverse)
 theme_set(bayesplot::theme_default(base_size = 14))
 
-def_prior = get_prior(form19, data = ratings, family = zero_one_inflated_beta(link = "probit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
-my_prior = c(
-  #prior(lkj(1), class = cor),
-             prior(beta(1,1), class = coi, resp = "arousal"),
-             prior(normal(0.1767,0.10), class = Intercept, resp = "arousal"),
-             prior(normal(0.3631,0.10), class = b, coef=a_catr4, resp = "arousal"),
-             prior(normal(0.6606,0.10), class = b, coef=a_catr5, resp = "arousal"),
-             prior(gamma(0.01, 0.01), class = phi, resp = "arousal"),
-             prior(student_t(3, 0, 10), class = sd, resp = "arousal"),
-             prior(beta(1, 1), class = zoi, resp = "arousal"),
-             prior(beta(1,1), class = coi, resp = "valence"),
-             prior(normal(0.1746,0.10), class = Intercept, resp = "valence"),
-             prior(normal(0.3312,0.10), class = b, coef=v_catNeu, resp = "valence"),
-             prior(normal(0.6408,0.10), class = b, coef=v_catPos, resp = "valence"),
-             prior(gamma(0.01, 0.01), class = phi, resp = "valence"),
-             prior(student_t(3, 0, 10), class = sd, resp = "valence"),
-             prior(beta(1, 1), class = zoi, resp = "valence")
-             )
+prior_weak = get_prior(form1, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
-
-  
-b_brms_m19 = brm(form19,
+b_brms_m1 = brm(form1,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
                prior = my_prior,
-               iter = 4000,
+               iter = 2000,
                chains = 4,
                cores = 4,
-               control = list(max_treedepth = 15, adapt_delta = 0.9999),
+               control = list(max_treedepth = 15, adapt_delta = 0.999),
                autocor = NULL,
                save_all_pars = TRUE,
                sample_prior = TRUE,
-               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m19')
+               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m1')
 
-mod = b_brms_m19
+mod = b_brms_m1
 
 # Diagnostics
 summary(mod)
