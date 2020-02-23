@@ -12,42 +12,38 @@ library(knitr)
 library(bayesplot)
 theme_set(bayesplot::theme_default(base_size = 14))
 
-prior_weak = get_prior(form1, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
+prior_weak = get_prior(form7, data = ratings, family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"))
 
-b_brms_m1 = brm(form1,
+b_brms_m7 = brm(form7,
                data = ratings, 
                family = zero_one_inflated_beta(link = "logit", link_phi = "log", link_zoi = "logit", link_coi = "logit"),
-               prior = my_prior,
-               iter = 2000,
+               prior = prior_weak,
+               iter = 4000,
                chains = 4,
                cores = 4,
-               control = list(max_treedepth = 15, adapt_delta = 0.999),
+               control = list(max_treedepth = 15, adapt_delta = 0.9999),
                autocor = NULL,
                save_all_pars = TRUE,
                sample_prior = TRUE,
-               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m1')
+               file = '/home/mina/Dropbox/APRIL-MINA/EXP4_EBL_GEN_VAE_USER/r_code/stan_models/b_brms_m7')
 
-mod = b_brms_m1
+mod = b_brms_m3
 
 # Diagnostics
 summary(mod)
 plot(mod)
-pp = pp_check(mod, resp = "valence")
-pp + theme_bw(mod)
+pp_check(mod, resp = "valence")
+pp_check(mod, resp = "arousal")
+pp_check(mod, resp = "dominance")
 marginal_effects(mod)
 
-# Model comparisons
-b_brms_m1 <- add_criterion(b_brms_m1, "waic")
-b_brms_m5 <- add_criterion(b_brms_m5, "waic")
-b_brms_m6 <- add_criterion(b_brms_m6, "waic")
-loo_compare(b_brms_m6, b_brms_m1, criterion = "waic")
 
 ## Model comparison with loo
-b_brms_m18_loo = loo(b_brms_m18, save_psis = TRUE)
+b_brms_m7_loo = loo(b_brms_m7, save_psis = TRUE)
 
 # If there is warning pareto_k > 0.7 
-b_brms_m18_reloo = loo(b_brms_m18, reloo = T)
-loo_compare(b_brms_m20_loo,b_brms_m18_reloo, b_brms_m19_reloo, b_brms_m0_loo, b_brms_m1_reloo, b_brms_m2_loo, b_brms_m3_loo, b_brms_m4_loo, b_brms_m5_loo, b_brms_m6_reloo, b_brms_m7_reloo, b_brms_m8_loo, b_brms_m52_reloo)
+b_brms_m7_reloo = loo(b_brms_m7, reloo = T)
+loo_compare(b_brms_m1_loo, b_brms_m2_loo, b_brms_m3_reloo, b_brms_m4_loo, b_brms_m5_reloo, b_brms_m6_loo)
 
 
 # 
@@ -57,7 +53,7 @@ dat <- as.data.frame(cbind(Y = standata(mod)$Y, fitted_values))
 ggplot(dat) + geom_point(aes(x = Estimate, y = Y))
 
 # ??
-yrep <- posterior_predict(b_brms_m5)
+yrep <- posterior_predict(mod)
 loo::ppc_loo_pit_overlay(ratings$valence, yrep, lw = weights(b_brms_m1_loo$psis_object))
 
 
@@ -114,7 +110,7 @@ fit2 = data.frame(v_catNeg =      antilogit(coda$b_valence_Intercept),
 )
 
 # Contrasts analysis
-neu_vs_neg = fit1$v_catNeu_zoi - fit1$v_catNeg_zoi
+neu_vs_neg = fit2$v_catNeu - fit2$v_catNeg
 hist(neu_vs_neg)
 quantile(neu_vs_neg, probs = c(.5, .025, .975)) 
 mean(neu_vs_neg > 0)
