@@ -28,3 +28,12 @@ testZeroInflation(simulationOutput)
 m_valence
 anova(m_valence)
 
+# GLMER
+m_arousal <- glmer(arousal ~ v_cat + a_cat + a_cat*v_cat + trial + (1 | idAnim) + (1 | subject), data = ratings, family = "binomial", control = glmerControl(optimizer = "bobyqa"), nAGQ = 10)
+simulationOutput <- simulateResiduals(fittedModel = m_valence, n = 250)
+plot(simulationOutput)
+testDispersion(simulationOutput)
+testZeroInflation(simulationOutput)
+
+m_valence
+anova(m_valence)

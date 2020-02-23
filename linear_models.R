@@ -7,7 +7,7 @@ m_arousal <- lme(arousal ~ a_cat, random=~1|subject,data=ratings)
 m_arousal
 anova(m_arousal)
 
-m_valence <- lme(valence ~ v_cat, random=~1|subject,data=ratings)
+m_valence <- lme(mean_v ~ v_cat, random=~1|subject,data=v_ratings_aggr)
 m_valence
 anova(m_valence)
 
