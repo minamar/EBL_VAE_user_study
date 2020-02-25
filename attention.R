@@ -6,6 +6,8 @@ library(lsmeans)
 library(coin)
 library(MASS)
 library(brant)
+library(xtable)
+
 select <- dplyr::select
 
 rat_ <- ratings
@@ -22,15 +24,17 @@ model = polr(attention ~ v_cat,  data = rat_, Hess = TRUE)
 summary(model)
 
 # Goodness of model and proportional odds assumption (holds if null is not rejected)
-pchisq(deviance(model),df.residual(model))
-brant(model)
+# pchisq(deviance(model),df.residual(model))
+# # brant(model)
 
 marginal = lsmeans(model, ~v_cat)
+marginal
 pairs(marginal, adjust="tukey")
 
 ctable <- coef(summary(model))
 p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
 (ctable <- cbind(ctable, "p value" = p))
+(ci <- confint(model)) 
 
 # With clm
 model_clm = clm(attention ~ v_cat,  data = rat_, link = "logit")
@@ -61,21 +65,22 @@ model = polr(attention ~ a_cat,  data = rat_, Hess = TRUE)
 summary(model)
 
 # Goodness of model and proportional odds assumption (holds if null is not rejected)
-pchisq(deviance(model),df.residual(model))
-brant(model)
+# pchisq(deviance(model),df.residual(model))
+# brant(model)
 
-marginal = lsmeans(model, ~a_cat)
+marginal = emmeans(model, ~a_cat)
+marginal
 pairs(marginal, adjust="tukey")
 
 ctable <- coef(summary(model))
 p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
 (ctable <- cbind(ctable, "p value" = p))
-
+(ci <- confint(model)) 
 # With clm
 model_clm = clm(attention ~ a_cat,  data = rat_, link = "logit")
 nominal_test(model_clm)
 scale_test(model_clm)
-marginal = lsmeans(model_clm, ~a_cat)
+marginal = emmeans(model_clm, ~a_cat)
 pairs(marginal, adjust="tukey")
 
 df_both = data.frame(a_cat = rep(c("r3", "r4", "r5"), each = 5),  
@@ -103,16 +108,16 @@ model = polr(was_emotion ~ v_cat,  data = rat_, Hess = TRUE)
 summary(model)
 
 # Goodness of model and proportional odds assumption (holds if null is not rejected)
-pchisq(deviance(model),df.residual(model))
-brant(model)
+# pchisq(deviance(model),df.residual(model))
+# brant(model)
 
 marginal = lsmeans(model, ~v_cat)
-pairs(marginal, adjust="none")
+pairs(marginal, adjust="tukey")
 
 ctable <- coef(summary(model))
 p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
 (ctable <- cbind(ctable, "p value" = p))
-
+(ci <- confint(model)) 
 # With clm
 model_clm = clm(was_emotion ~ v_cat,  data = rat_, link = "logit")
 nominal_test(model_clm)
@@ -142,16 +147,16 @@ model = polr(was_emotion ~ a_cat,  data = rat_, Hess = TRUE)
 summary(model)
 
 # Goodness of model and proportional odds assumption (holds if null is not rejected)
-pchisq(deviance(model),df.residual(model))
-brant(model)
+# pchisq(deviance(model),df.residual(model))
+# brant(model)
 
 marginal = lsmeans(model, ~a_cat)
-pairs(marginal, adjust="none")
+pairs(marginal, adjust="tukey")
 
 ctable <- coef(summary(model))
 p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
 (ctable <- cbind(ctable, "p value" = p))
-
+(ci <- confint(model)) 
 
 # With clm
 model_clm = clm(was_emotion ~ a_cat,  data = rat_, link = "logit")
