@@ -5,7 +5,6 @@ library(tidyverse)
 library(lsmeans)
 library(coin)
 library(MASS)
-library(brant)
 library(xtable)
 
 select <- dplyr::select
@@ -199,8 +198,48 @@ ggsave("images/emo_va.pdf", units="mm", width=200, height=80, dpi=300)
 
 ################
 # Descriptive statistics
-df = data.frame(rat_$attention, rat_$was_emotion)
-lik = likert(df)
-plot(lik, type="bar")
-lik2 <- likert(summary = lik$results)
-summary(lik2)
+# Likert plots config
+scale_height = knitr::opts_chunk$get('fig.height')*0.5
+scale_width = knitr::opts_chunk$get('fig.width')*1.25
+knitr::opts_chunk$set(fig.height = scale_height, fig.width = scale_width)
+theme_update(legend.text = element_text(size = rel(0.7)))
+
+att_title = "The robot's behaviour attracts my attention."
+df = data.frame(select(ratings, subject, v_cat, a_cat, attention))
+Neutral = subset(df, v_cat == "Neu")$attention
+Negative = subset(df, v_cat == "Neg")$attention
+Positive = subset(df, v_cat == "Pos")$attention
+Low = subset(df, a_cat == "r3")$attention
+Medium = subset(df, a_cat == "r4")$attention
+High = subset(df, a_cat == "r5")$attention
+att_long = data.frame(Negative = as.factor(Negative), Neutral = as.factor(Neutral), Positive = as.factor(Positive), Low= as.factor(Low), Medium= as.factor(Medium), High= as.factor(High))
+
+lik_att = likert(att_long)
+att_bar = plot(lik_att, group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(att_title)
+att_heat = plot(lik_att, type= 'heat', group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(att_title)
+
+emo_title = "The robot's expression is emotional."
+df = data.frame(select(ratings, subject, v_cat, a_cat, was_emotion))
+Neutral = subset(df, v_cat == "Neu")$was_emotion
+Negative = subset(df, v_cat == "Neg")$was_emotion
+Positive = subset(df, v_cat == "Pos")$was_emotion
+Low = subset(df, a_cat == "r3")$was_emotion
+Medium = subset(df, a_cat == "r4")$was_emotion
+High = subset(df, a_cat == "r5")$was_emotion
+emo_long = data.frame(Negative = as.factor(Negative), Neutral = as.factor(Neutral), Positive = as.factor(Positive), Low= as.factor(Low), Medium= as.factor(Medium), High= as.factor(High))
+
+lik_emo = likert(emo_long)
+emo_bar = plot(lik_emo, group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(emo_title)
+emo_heat = plot(lik_emo, group.order = c("Neutral", "Negative", "Positive", "High", "Medium", "Low"), type= 'heat') + ggtitle(emo_title)
+
+library(cowplot)
+
+# Plot attention likert
+p_att_lik <- plot_grid(att_bar, att_heat, labels = "AUTO", ncol = 2)
+plot_grid(p_att_lik, align = "hv")
+ggsave("images/att_lik.pdf", units="mm", width=350, height=80, dpi=300)
+
+# Plot emotional likert
+p_emo_lik <- plot_grid(emo_bar, emo_heat, labels = "AUTO", ncol = 2)
+plot_grid(p_emo_lik, align = "hv")
+ggsave("images/emo_lik.pdf", units="mm", width=350, height=80, dpi=300)
