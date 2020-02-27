@@ -10,6 +10,7 @@ library(tidyverse)
 library(lsmeans)
 library(coin)
 library(MASS)
+library(xtable)
 select <- dplyr::select
 
 # Function to turn counts into rows I found laying around the web somewhere
@@ -49,8 +50,8 @@ model = polr(likert ~ condition,  data = anth_all, Hess = TRUE)
 summary(model)
 
 # Uncomment only to get theh nominal test
-# model_clm = clm(likert ~ condition,  data = anth_all, link = "logit")
-# nominal_test(model_clm)
+model_clm = clm(likert ~ condition,  data = anth_all, link = "logit")
+nominal_test(model_clm)
 
 marginal = lsmeans(model, ~condition)
 pairs(marginal, adjust="tukey")
@@ -136,8 +137,8 @@ model = polr(likert ~ sex,  data = anth_sex, Hess = TRUE)
 summary(model)
 
 # Uncomment only to get theh nominal test
-# model_clm = clm(likert ~ sex,  data = anth_sex, link = "logit")
-# nominal_test(model_clm)
+model_clm = clm(likert ~ sex,  data = anth_sex, link = "logit")
+nominal_test(model_clm)
 
 marginal = lsmeans(model, ~sex)
 pairs(marginal, adjust="tukey")
@@ -191,8 +192,8 @@ model = polr(likert ~ condition,  data = anim_all, Hess = TRUE)
 summary(model)
 
 # Uncomment only to get theh nominal test
-# model_clm = clm(likert ~ condition,  data = anim_all, link = "logit")
-# nominal_test(model_clm)
+model_clm = clm(likert ~ condition,  data = anim_all, link = "logit")
+nominal_test(model_clm)
 
 marginal = lsmeans(model, ~condition)
 pairs(marginal, adjust="tukey")
@@ -277,8 +278,8 @@ model = polr(likert ~ sex,  data = anim_sex, Hess = TRUE)
 summary(model)
 
 # Uncomment only to get theh nominal test
-# model_clm = clm(likert ~ sex,  data = anim_sex, link = "logit")
-# nominal_test(model_clm)
+model_clm = clm(likert ~ sex,  data = anim_sex, link = "logit")
+nominal_test(model_clm)
 
 marginal = lsmeans(model, ~sex)
 pairs(marginal, adjust="tukey")
@@ -346,3 +347,67 @@ legend <- get_legend(
 # the width of one plot (via rel_widths).
 plot_grid(p_sex, legend,  ncol = 1, rel_heights = c(1, .1))
 ggsave("images/anth_anim_sex.pdf", units="mm", width=200, height=80, dpi=300)
+
+################################################################
+# Descriptive statistics
+# Likert plots config
+scale_height = knitr::opts_chunk$get('fig.height')*0.5
+scale_width = knitr::opts_chunk$get('fig.width')*1.25
+knitr::opts_chunk$set(fig.height = scale_height, fig.width = scale_width)
+theme_update(legend.text = element_text(size = rel(0.7)))
+
+anth_title = "Anthropomorphism"
+surv_ <- merge(select(dem, -X, -age, -anim_experience), surv, by = "subject")
+surv_anth <- filter(select(surv_, -X, -starts_with("animacy")), condition == 28)
+surv_anth <- select(surv_anth, -sex, -subject, -condition)
+designed_pre = as.numeric(t(surv_anth))
+surv_anth <- filter(select(surv_, -X, -starts_with("animacy")), condition == 29)
+surv_anth <- select(surv_anth, -sex, -subject, -condition)
+generated_pre = as.numeric(t(surv_anth))
+surv_anth <- filter(select(surv_, -X, -starts_with("animacy")), condition == 30)
+surv_anth <- select(surv_anth, -sex, -subject, -condition)
+designed_post = as.numeric(t(surv_anth))
+surv_anth <- filter(select(surv_, -X, -starts_with("animacy")), condition == 31)
+surv_anth <- select(surv_anth, -sex, -subject, -condition)
+generated_post = as.numeric(t(surv_anth))
+anth_long = data.frame(designed_pre = as.factor(designed_pre), generated_pre = as.factor(generated_pre), designed_post = as.factor(designed_post), generated_post= as.factor(generated_post))
+
+lik_anth = likert(anth_long)
+anth_bar = plot(lik_anth, group.order = c("designed_pre", "generated_pre", "designed_post", "generated_post")) + ggtitle(anth_title)
+anth_heat = plot(lik_anth, type= 'heat', group.order = c("designed_pre", "generated_pre", "designed_post", "generated_post")) + ggtitle(anth_title)
+
+
+######################
+# Animacy
+anim_title = "Animacy"
+surv_ <- merge(select(dem, -X, -age, -anim_experience), surv, by = "subject")
+surv_anim <- filter(select(surv_, -X, -starts_with("anth")), condition == 28)
+surv_anim <- select(surv_anim, -sex, -subject, -condition)
+designed_pre = as.numeric(t(surv_anim))
+surv_anim <- filter(select(surv_, -X, -starts_with("anth")), condition == 29)
+surv_anim <- select(surv_anim, -sex, -subject, -condition)
+generated_pre = as.numeric(t(surv_anim))
+surv_anim <- filter(select(surv_, -X, -starts_with("anth")), condition == 30)
+surv_anim <- select(surv_anim, -sex, -subject, -condition)
+designed_post = as.numeric(t(surv_anim))
+surv_anim <- filter(select(surv_, -X, -starts_with("anth")), condition == 31)
+surv_anim <- select(surv_anim, -sex, -subject, -condition)
+generated_post = as.numeric(t(surv_anim))
+anim_long = data.frame(designed_pre = as.factor(designed_pre), generated_pre = as.factor(generated_pre), designed_post = as.factor(designed_post), generated_post= as.factor(generated_post))
+
+lik_anim = likert(anim_long)
+anim_bar = plot(lik_anim, group.order = c("designed_pre", "generated_pre", "designed_post", "generated_post")) + ggtitle(anim_title)
+anim_heat = plot(lik_anim, type= 'heat', group.order = c("designed_pre", "generated_pre", "designed_post", "generated_post")) + ggtitle(anim_title)
+
+
+library(cowplot)
+
+# Plot attention likert
+p_anth_lik <- plot_grid(anth_bar, anth_heat, labels = "AUTO", ncol = 2)
+plot_grid(p_anth_lik, align = "hv")
+ggsave("images/anth_lik.pdf", units="mm", width=350, height=80, dpi=300)
+
+# Plot emotional likert
+p_anim_lik <- plot_grid(anim_bar, anim_heat, labels = "AUTO", ncol = 2)
+plot_grid(p_anim_lik, align = "hv")
+ggsave("images/anim_lik.pdf", units="mm", width=350, height=80, dpi=300)
