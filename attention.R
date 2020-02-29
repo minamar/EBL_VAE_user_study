@@ -202,7 +202,10 @@ ggsave("images/emo_va.pdf", units="mm", width=200, height=80, dpi=300)
 scale_height = knitr::opts_chunk$get('fig.height')*0.5
 scale_width = knitr::opts_chunk$get('fig.width')*1.25
 knitr::opts_chunk$set(fig.height = scale_height, fig.width = scale_width)
-theme_update(legend.text = element_text(size = rel(0.7)))
+theme_update(legend.text = element_text(size = rel(0.8)), 
+             axis.text=element_text(size=12, face="bold"))
+
+va_lev_ord = c("Negative", "Neutral", "Positive", "Low", "Medium", "High")
 
 att_title = "The robot's behaviour attracts my attention."
 df = data.frame(select(ratings, subject, v_cat, a_cat, attention))
@@ -215,8 +218,8 @@ High = subset(df, a_cat == "r5")$attention
 att_long = data.frame(Negative = as.factor(Negative), Neutral = as.factor(Neutral), Positive = as.factor(Positive), Low= as.factor(Low), Medium= as.factor(Medium), High= as.factor(High))
 
 lik_att = likert(att_long)
-att_bar = plot(lik_att, group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(att_title)
-att_heat = plot(lik_att, type= 'heat', group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(att_title)
+att_bar = plot(lik_att, centered=FALSE, group.order = va_lev_ord) + ggtitle(att_title)  
+att_heat = plot(lik_att, type= 'heat', group.order = va_lev_ord) + ggtitle(att_title)
 
 emo_title = "The robot's expression is emotional."
 df = data.frame(select(ratings, subject, v_cat, a_cat, was_emotion))
@@ -228,18 +231,31 @@ Medium = subset(df, a_cat == "r4")$was_emotion
 High = subset(df, a_cat == "r5")$was_emotion
 emo_long = data.frame(Negative = as.factor(Negative), Neutral = as.factor(Neutral), Positive = as.factor(Positive), Low= as.factor(Low), Medium= as.factor(Medium), High= as.factor(High))
 
+
 lik_emo = likert(emo_long)
-emo_bar = plot(lik_emo, group.order = c("Neutral", "Negative", "Positive", "Low", "Medium", "High")) + ggtitle(emo_title)
-emo_heat = plot(lik_emo, group.order = c("Neutral", "Negative", "Positive", "High", "Medium", "Low"), type= 'heat') + ggtitle(emo_title)
+emo_bar = plot(lik_emo, centered=FALSE, group.order = va_lev_ord) + ggtitle(emo_title) 
+emo_heat = plot(lik_emo, type= 'heat') + ggtitle(emo_title) 
+# emo_heat = emo_heat + theme(axis.text=element_text(size=12, face="bold"))
+  # scale_y_discrete(drop=FALSE, limits=va_lev_ord)
 
 library(cowplot)
+# Plot attention + emo likert bar
+p_bar_lik <- plot_grid(att_bar+ theme(legend.position = "none"), emo_bar+ theme(legend.position = "none"), labels = "AUTO", ncol = 2)
+legend <- get_legend(
+  att_bar +
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")
+)
+plot_grid(p_bar_lik, legend,  ncol = 1, rel_heights = c(1, .1))
+ggsave("images/att_emo_bar_lik.pdf", units="mm", width=260, height=80, dpi=300)
 
-# Plot attention likert
-p_att_lik <- plot_grid(att_bar, att_heat, labels = "AUTO", ncol = 2)
-plot_grid(p_att_lik, align = "hv")
-ggsave("images/att_lik.pdf", units="mm", width=350, height=80, dpi=300)
+# Plot attention + emo likert heat
+p_heat_lik <- plot_grid(att_heat+ theme(legend.position = "none"), emo_heat+ theme(legend.position = "none"), labels = "AUTO", ncol = 2) 
+legend <- get_legend(
+  att_heat +
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")
+)
+plot_grid(p_heat_lik, legend,  ncol = 1, rel_heights = c(1, .1))
+ggsave("images/att_emo_heat_lik.pdf", units="mm", width=300, height=120, dpi=300)
 
-# Plot emotional likert
-p_emo_lik <- plot_grid(emo_bar, emo_heat, labels = "AUTO", ncol = 2)
-plot_grid(p_emo_lik, align = "hv")
-ggsave("images/emo_lik.pdf", units="mm", width=350, height=80, dpi=300)
